@@ -68,7 +68,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidd
 .hd-left{display:flex;flex-direction:column;justify-content:flex-end;flex:1;min-width:0}
 .hd-inner{
   display:flex;align-items:flex-end;justify-content:space-between;
-  padding:0 32px 16px;gap:0;flex:1;
+  padding:0 32px 12px 24px;gap:0;flex:1;
 }
 .hd-right{display:flex;align-items:flex-end;gap:28px;flex-shrink:0}
 .hd-logo{
@@ -78,11 +78,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidd
   transition:font-size .35s cubic-bezier(.4,0,.2,1),opacity .2s;
   display:flex;align-items:flex-end;
 }
-.hd-logo img{height:1.4em;width:auto;display:block;transition:height .35s cubic-bezier(.4,0,.2,1);margin-bottom:-0.1em}
+.hd-logo img{height:clamp(60px,8vw,110px);width:auto;display:block;transition:height .35s cubic-bezier(.4,0,.2,1)}
 .hd.small .hd-logo{font-size:26px}
+.hd.small .hd-logo img{height:44px}
 .hd-logo:hover{opacity:.7}
-.hd-tagline{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--ink3);margin-top:5px;transition:opacity .2s;white-space:nowrap}
-.hd.small .hd-tagline{opacity:1;pointer-events:auto;font-size:9px}
+.hd-tagline{display:none}
 .hd-right{display:flex;align-items:flex-end;padding-bottom:16px;gap:28px;flex-shrink:0}
 .hd-counts{display:flex;gap:24px}
 .hd-meta{display:flex;align-items:center;gap:14px;padding-bottom:1px}.hd-cn{font-family:var(--bebas);font-size:36px;font-weight:400;letter-spacing:-0.02em;line-height:1}
@@ -260,15 +260,15 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidd
 .hd-mobile-bar{
   display:none;
   align-items:center;justify-content:space-between;
-  padding:10px 16px;border-bottom:1px solid var(--border);
-  background:#fff;
+  padding:8px 16px;border-bottom:1px solid var(--border);
+  background:#fff;min-height:56px;
 }
 .hd-logo-mobile{
   font-family:var(--bebas);font-size:28px;font-weight:400;
   letter-spacing:-0.02em;line-height:1;cursor:pointer;user-select:none;
   display:flex;align-items:center;
 }
-.hd-logo-mobile img{height:32px;width:auto;display:block}
+.hd-logo-mobile img{height:44px;width:auto;display:block}
 .hd-mobile-actions{display:flex;align-items:center;gap:10px}
 
 @media(max-width:860px){
@@ -397,7 +397,6 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidd
     <div class="hd-inner">
       <div class="hd-left">
         <div class="hd-logo" onclick="resetView()" id="hd-logo-wrap">CGE</div>
-        <div class="hd-tagline">Contemporary Gugak Explorer</div>
       </div>
       <div class="hd-right">
         <div class="hd-counts">
