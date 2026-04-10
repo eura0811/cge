@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CGE — Contemporary Gugak Explorer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;
+  --bg2:#F7F6F2;
+  --ink:#0D0D0B;
+  --ink2:#6B6860;
+  --ink3:#B0ADA6;
+  --border:rgba(13,13,11,0.09);
+  --border2:rgba(13,13,11,0.05);
+  --bebas:'Inter',sans-serif;
+  --sans:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  --mono:'DM Mono',monospace;
+  --c-협주곡:#8C1D23;
+  --c-실내악:#2D5F4F;
+  --c-독주:#4A7BA7;
+  --c-관현악:#B5622A;
+  --c-성악:#5C3A2E;
+  --c-기타:#7A7A72;
+  --hh:64px;
+  --hh-big:148px;
+}
+html{font-size:15px}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden;height:100vh}
+
+/* ── SETUP ── */
+#setup{display:none;position:fixed;inset:0;background:#fff;z-index:2000;align-items:center;justify-content:center;padding:24px}
+#setup.on{display:flex}
+.su{width:100%;max-width:420px}
+.su-logo{font-family:var(--bebas);font-size:48px;font-weight:400;letter-spacing:-0.02em;margin-bottom:4px}
+.su-sub{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;color:var(--ink3);margin-bottom:32px}
+.su-label{font-family:var(--mono);font-size:10px;letter-spacing:0.08em;color:var(--ink3);display:block;margin-bottom:4px}
+.su-input{width:100%;font-family:var(--mono);font-size:12px;padding:9px 12px;border:1px solid var(--border);background:var(--bg2);color:var(--ink);outline:none;margin-bottom:10px;transition:border-color .15s}
+.su-input:focus{border-color:var(--ink);background:#fff}
+.su-input::placeholder{color:var(--ink3)}
+.su-btn{width:100%;padding:12px;font-family:var(--bebas);font-size:14px;font-weight:400;letter-spacing:.06em;background:var(--ink);color:#fff;border:none;cursor:pointer;margin-top:4px;transition:opacity .15s}
+.su-btn:hover{opacity:.8}
+.su-err{font-family:var(--mono);font-size:11px;color:var(--c-협주곡);margin-top:8px;min-height:16px}
+.su-note{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:20px;line-height:1.9;border-top:1px solid var(--border);padding-top:16px}
+.su-note a{color:var(--c-실내악)}
+
+/* ── LOADING ── */
+#loading{display:none;position:fixed;inset:0;background:#fff;z-index:1999;align-items:center;justify-content:center}
+#loading.on{display:flex}
+.ld{font-family:var(--bebas);font-size:72px;font-weight:400;letter-spacing:.02em;animation:pulse .9s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.12}50%{opacity:1}}
+
+/* ── APP ── */
+#app{display:none;height:100vh;flex-direction:column;max-width:1600px;margin:0 auto;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+#app.on{display:flex}
+
+/* ── HEADER ── */
+.hd{
+  flex-shrink:0;border-bottom:1px solid var(--border);
+  background:#fff;
+  height:var(--hh-big);transition:height .35s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.hd.small{height:var(--hh)}
+.hd-left{display:flex;flex-direction:column;justify-content:flex-end;flex:1;min-width:0}
+.hd-inner{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 32px 16px;gap:0;flex:1;
+}
+.hd-right{display:flex;align-items:flex-end;gap:28px;flex-shrink:0}
+.hd-logo{
+  font-family:var(--bebas);font-weight:400;letter-spacing:-0.02em;line-height:1;
+  cursor:pointer;user-select:none;
+  font-size:clamp(40px,5.5vw,80px);
+  transition:font-size .35s cubic-bezier(.4,0,.2,1),opacity .2s;
+  display:flex;align-items:flex-end;
+}
+.hd-logo img{height:1.4em;width:auto;display:block;transition:height .35s cubic-bezier(.4,0,.2,1);margin-bottom:-0.1em}
+.hd.small .hd-logo{font-size:26px}
+.hd-logo:hover{opacity:.7}
+.hd-tagline{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--ink3);margin-top:5px;transition:opacity .2s;white-space:nowrap}
+.hd.small .hd-tagline{opacity:1;pointer-events:auto;font-size:9px}
+.hd-right{display:flex;align-items:flex-end;padding-bottom:16px;gap:28px;flex-shrink:0}
+.hd-counts{display:flex;gap:24px}
+.hd-meta{display:flex;align-items:center;gap:14px;padding-bottom:1px}.hd-cn{font-family:var(--bebas);font-size:36px;font-weight:400;letter-spacing:-0.02em;line-height:1}
+.hd-cl{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.hd-meta{display:flex;align-items:center;gap:14px;padding-bottom:1px}
+.hd-stat{font-family:var(--mono);font-size:10px;color:var(--ink3);white-space:nowrap}
+.hd-stat b{color:var(--ink);font-weight:400}
+.hd-settings{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);background:none;border:none;cursor:pointer;transition:color .15s;white-space:nowrap}
+.hd-settings:hover{color:var(--c-협주곡)}
+.hd-topbar{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  padding:6px 32px;
+  background:#fff;flex-shrink:0;
+}
+.hd-report{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  color:var(--c-실내악);border:1px solid var(--c-실내악);
+  padding:2px 9px;text-decoration:none;transition:all .15s;white-space:nowrap;
+}
+.hd-report:hover{background:var(--c-실내악);color:#fff}
+
+/* ── BODY ── */
+.body{flex:1;display:grid;grid-template-columns:180px 500px 1fr;min-height:0}
+
+/* ── SIDEBAR ── */
+.sb{border-right:1px solid var(--border);overflow-y:auto;background:var(--bg);display:flex;flex-direction:column}
+.sb-top{flex-shrink:0}
+.sb-fg{padding:10px 14px;border-bottom:1px solid var(--border2)}
+.sb-fl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px}
+.sb-fbtns{display:flex;flex-wrap:wrap;gap:3px}
+.sb-fb{font-family:var(--mono);font-size:11px;padding:3px 8px;border:1px solid var(--border);background:none;color:var(--ink2);cursor:pointer;transition:all .12s}
+.sb-fb:hover{border-color:var(--ink2);color:var(--ink)}
+.sb-fb.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sb-sq{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px}
+.sb-sq input{font-family:var(--mono);font-size:11px;border:none;background:none;color:var(--ink);outline:none;width:100%}
+.sb-sq input::placeholder{color:var(--ink3)}
+.sb-scroll{flex:1;overflow-y:auto}
+.sb-sec{padding:10px 0 4px}
+.sb-sh{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);padding:0 14px 6px;border-bottom:1px solid var(--border2);margin-bottom:3px}
+.sb-item{display:flex;justify-content:space-between;align-items:center;padding:5px 14px;cursor:pointer;transition:background .1s}
+.sb-item:hover{background:var(--bg2)}
+.sb-item.on{background:var(--ink);color:#fff}
+.sb-item.on .sbn,.sb-item.on .sbc{color:#fff}
+.sbn{font-size:13px;color:var(--ink)}
+.sbc{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.sb-unk{color:var(--ink3)!important;font-style:italic}
+/* 악기 다중선택 칩 */
+.inst-chip{cursor:pointer;transition:background .1s;border-left:3px solid transparent!important}
+.inst-chip.on{background:var(--ink)!important;color:#fff}
+.inst-chip.on .sbn{color:#fff}
+.sb-inst-hint{font-family:var(--mono);font-size:9px;color:var(--ink3);padding:4px 14px 6px;letter-spacing:.04em}
+
+/* ── COMPOSER CARD ── */
+.comp-card{display:none;border-bottom:2px solid var(--ink);background:#fff}
+.comp-card.show{display:block}
+.comp-card-inner{padding:16px 28px 14px}
+.comp-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.comp-card-name{font-family:var(--bebas);font-size:40px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:var(--ink)}
+.comp-card-close{font-family:var(--mono);font-size:10px;color:var(--ink3);background:none;border:none;cursor:pointer;padding-top:6px;transition:color .15s;flex-shrink:0}
+.comp-card-close:hover{color:var(--ink)}
+.comp-card-stats{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:10px}
+.comp-card-stats b{color:var(--ink);font-weight:400}
+.comp-card-links{display:flex;gap:5px;flex-wrap:wrap}
+.comp-profile-btn{font-family:var(--mono);font-size:10px;padding:3px 10px;border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer;transition:all .15s;white-space:nowrap}
+.comp-profile-btn:hover{background:var(--ink);color:#fff}
+.comp-profile-btn.no-profile{border-color:var(--border);color:var(--ink3);cursor:default;pointer-events:none}
+
+/* ── COMPOSER PROFILE PANEL ── */
+.cp-head{flex-shrink:0;border-bottom:1px solid var(--border);padding:18px 18px 14px}
+.cp-back-btn{font-family:var(--mono);font-size:10px;color:var(--ink3);background:none;border:none;cursor:pointer;padding:0;margin-bottom:12px;display:block;transition:color .15s}
+.cp-back-btn:hover{color:var(--ink)}
+.cp-photo{width:52px;height:52px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.cp-photo img{width:100%;height:100%;object-fit:cover}
+.cp-photo-initial{font-family:var(--bebas);font-size:20px;letter-spacing:.04em;color:var(--ink3)}
+.cp-name{font-family:var(--bebas);font-size:30px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:var(--ink);margin-bottom:2px}
+.cp-birth{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:7px}
+.cp-stats-row{display:flex;gap:14px;margin-bottom:8px}
+.cp-stat{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.cp-stat b{color:var(--ink);font-weight:400}
+.cp-links{display:flex;gap:5px;flex-wrap:wrap}
+.cp-link{font-family:var(--mono);font-size:10px;padding:2px 9px;border:1px solid var(--border);color:var(--ink2);text-decoration:none;transition:all .12s}
+.cp-link:hover{border-color:var(--ink);color:var(--ink)}
+.cp-body{flex:1;overflow-y:auto;padding:14px 18px}
+.cp-bio{font-size:13px;line-height:1.8;color:var(--ink2);margin-bottom:18px;white-space:pre-line}
+.cp-sec-title{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:9px;padding-bottom:5px;border-bottom:1px solid var(--border2)}
+.tl-item{display:grid;grid-template-columns:32px 1fr;gap:0 10px;padding:8px 0;border-bottom:1px solid var(--border2)}
+.tl-year{font-family:var(--mono);font-size:10px;color:var(--ink3);padding-top:3px}
+.tl-type{font-family:var(--mono);font-size:9px;letter-spacing:.04em;padding:1px 6px;margin-bottom:3px;display:inline-block}
+.tl-type-인터뷰{background:#EDF4FF;color:#1B5EA7}
+.tl-type-수상{background:#FFF8E0;color:#8A6500}
+.tl-type-위촉{background:#EDF7F0;color:#1B5E35}
+.tl-type-해외활동{background:#F5F0FF;color:#5B3EA7}
+.tl-type-기타{background:var(--bg2);color:var(--ink3)}
+.tl-text{font-size:12px;line-height:1.5;color:var(--ink)}
+.tl-link{font-family:var(--mono);font-size:10px;color:var(--c-실내악);text-decoration:none;margin-top:2px;display:inline-block}
+.tl-link:hover{text-decoration:underline}
+.cp-work-row{display:grid;grid-template-columns:32px 1fr auto;gap:0 10px;padding:7px 0;border-bottom:1px solid var(--border2);cursor:pointer;transition:opacity .15s}
+.cp-work-row:hover{opacity:.7}
+.cp-wy{font-family:var(--mono);font-size:10px;color:var(--ink3);padding-top:2px}
+.cp-wt{font-family:var(--bebas);font-size:18px;font-weight:400;letter-spacing:-0.01em;color:var(--ink);line-height:1.2}
+.cp.wsub{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:1px}
+.cp-wvc{font-family:var(--mono);font-size:10px;color:var(--ink3);display:flex;align-items:center;gap:3px;padding-top:2px;flex-shrink:0}
+.cp-vd{width:4px;height:4px;border-radius:50%;background:var(--c-협주곡)}
+.comp-link{
+  font-family:var(--mono);font-size:10px;padding:3px 10px;
+  border:1px solid var(--border);color:var(--ink2);text-decoration:none;
+  transition:all .12s;white-space:nowrap;
+}
+.comp-link:hover{border-color:var(--ink);color:var(--ink);background:var(--bg2)}
+.comp-link-yt{border-color:rgba(192,57,43,0.3);color:#C0392B}
+.comp-link-yt:hover{border-color:#C0392B;background:rgba(192,57,43,0.05)}
+
+/* ── WORKS ── */
+.wkcol{overflow-y:auto;background:var(--bg);display:flex;flex-direction:column}
+.wkbar{display:flex;align-items:center;justify-content:space-between;padding:7px 20px;border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--bg);z-index:5;flex-shrink:0}
+.wkn{font-family:var(--mono);font-size:10px;color:var(--ink3)}
+.wksort{font-family:var(--mono);font-size:10px;color:var(--ink2);border:none;background:none;cursor:pointer;outline:none}
+.wklist{flex:1;overflow-y:auto}
+/* work row */
+.wr{border-bottom:1px solid var(--border2);cursor:pointer;position:relative;transition:background .1s}
+.wr::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--wc,var(--c-기타));opacity:0;transition:opacity .15s}
+.wr:hover::before,.wr.sel::before{opacity:1}
+.wr[data-t="협주곡"]{--wc:var(--c-협주곡)}
+.wr[data-t="실내악"]{--wc:var(--c-실내악)}
+.wr[data-t="독주"]{--wc:var(--c-독주)}
+.wr[data-t="관현악"]{--wc:var(--c-관현악)}
+.wr[data-t="성악"]{--wc:var(--c-성악)}
+.wr:hover{background:rgba(13,13,11,.025)}
+.wr.sel{background:rgba(13,13,11,.04)}
+.wm{display:grid;grid-template-columns:44px 1fr auto;gap:0 12px;padding:10px 20px;align-items:start}
+.wy{font-family:var(--mono);font-size:10px;color:var(--ink3);padding-top:3px;min-width:0}
+.wi{min-width:0}
+.wt{font-family:var(--bebas);font-size:22px;font-weight:400;letter-spacing:-0.01em;line-height:1.2;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:font-size .15s}
+.wr:hover .wt,.wr.sel .wt{font-size:24px}
+.wcomp{font-family:var(--sans);font-size:13px;font-weight:400;color:var(--ink);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wsub{font-family:var(--mono);font-size:11px;color:var(--ink3);margin-top:1px}
+.wvc{font-family:var(--mono);font-size:10px;color:var(--ink3);display:flex;align-items:center;gap:3px;padding-top:3px;flex-shrink:0;white-space:nowrap}
+.vd{width:5px;height:5px;border-radius:50%;background:var(--c-협주곡)}
+
+/* ── DETAIL PANEL — 영상만 ── */
+.dp{border-left:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.dp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px}
+.dp-empty-logo{font-family:var(--bebas);font-size:48px;letter-spacing:.08em;color:var(--border);line-height:1}
+.dp-empty-hint{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:.06em}
+.dph{flex-shrink:0;border-bottom:1px solid var(--border)}
+.dp-accent{height:3px}
+.dp-hinner{padding:14px 18px 12px}
+.dp-eye{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px}
+.dp-title{font-family:var(--bebas);font-size:26px;font-weight:400;letter-spacing:-0.01em;line-height:1.2;margin-bottom:3px}
+.dp-comp{font-family:var(--sans);font-size:13px;font-weight:400;color:var(--ink);cursor:pointer;transition:color .15s}
+.dp-comp:hover{color:var(--c-실내악)}
+.dpb{flex:1;overflow-y:auto;padding:14px 18px}
+.dp-sh{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border2)}
+.dp-no{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.vc{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--border);margin-bottom:5px;text-decoration:none;color:inherit;transition:border-color .12s}
+.vc:hover{border-color:var(--ink)}
+.vth{width:60px;height:38px;background:var(--ink);flex-shrink:0;position:relative;overflow:hidden}
+.vth img{width:100%;height:100%;object-fit:cover;display:block}
+.vpl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.vpl::after{content:'';width:0;height:0;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent rgba(255,255,255,.9)}
+.vt{font-size:11px;line-height:1.4;margin-bottom:2px;color:var(--ink)}
+.vs{font-family:var(--mono);font-size:9px;color:var(--ink3)}
+  position:relative;
+}
+.cp-work-item::before{content:'';position:absolute;left:-20px;top:0;bottom:0;width:3px;background:var(--wc2,var(--c-기타));opacity:0;transition:opacity .15s}
+.cp-work-item:hover::before{opacity:1}
+/* ── BACK TO TOP ── */
+.btt{position:fixed;bottom:24px;right:24px;z-index:300;width:36px;height:36px;background:var(--ink);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,background .15s}
+.btt.on{opacity:1;pointer-events:auto}
+.btt:hover{background:var(--c-실내악)}
+
+.empty{padding:48px 28px;font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:center}
+
+/* 모바일 전용 헤더바 */
+.hd-mobile-bar{
+  display:none;
+  align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  background:#fff;
+}
+.hd-logo-mobile{
+  font-family:var(--bebas);font-size:28px;font-weight:400;
+  letter-spacing:-0.02em;line-height:1;cursor:pointer;user-select:none;
+  display:flex;align-items:center;
+}
+.hd-logo-mobile img{height:32px;width:auto;display:block}
+.hd-mobile-actions{display:flex;align-items:center;gap:10px}
+
+@media(max-width:860px){
+  .hd-mobile-bar{display:flex}
+  .hd-topbar{display:none}
+  .hd-inner{display:none}
+  .hd-settings-desk{display:none}
+  body{overflow:auto;height:auto}
+  #app.on{height:auto;overflow:auto}
+  .hd{height:auto!important;transition:none}
+  .hd-inner{height:auto;flex-wrap:wrap;padding:12px 16px;gap:6px;align-items:center}
+  .hd-left{padding-bottom:0;flex-direction:row;align-items:center;gap:8px;flex:1}
+  .hd-logo{font-size:24px!important}
+  .hd-tagline{display:none}
+  .hd-right{padding-bottom:0;gap:8px}
+  .hd-counts{display:none}
+  .hd-meta{gap:8px}
+  /* 3컬럼 → 1컬럼, 탭 방식 */
+  .body{grid-template-columns:1fr;display:flex;flex-direction:column;height:auto}
+  .sb{display:none}
+  .dp{display:none!important}
+  /* 작품 컬럼 풀폭 */
+  .wkcol{height:auto;overflow-y:visible;flex:1}
+  /* 모바일 필터바 */
+  .mob-bar{
+    display:flex;flex-wrap:wrap;gap:4px;
+    padding:8px 12px;border-bottom:1px solid var(--border);
+    background:#fff;position:sticky;top:0;z-index:50;
+  }
+  .mob-chip{
+    font-family:var(--mono);font-size:10px;padding:3px 9px;
+    border:1px solid var(--border);background:none;color:var(--ink2);cursor:pointer;
+    transition:all .12s;
+  }
+  .mob-chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .mob-sort{
+    font-family:var(--mono);font-size:10px;border:1px solid var(--border);
+    padding:3px 8px;color:var(--ink2);background:none;cursor:pointer;margin-left:auto;
+  }
+  .wm{padding:11px 14px;grid-template-columns:36px 1fr auto;gap:0 10px}
+  .wt{font-size:17px}
+  .wr:hover .wt,.wr.sel .wt{font-size:19px}
+  .comp-card-inner{padding:12px 14px 10px}
+  /* 모바일 상세: 작품 클릭 시 bottom sheet 스타일 */
+  .mob-detail-sheet{
+    display:none;position:fixed;inset:0;z-index:200;
+    flex-direction:column;
+  }
+  .mob-detail-sheet.open{display:flex}
+  .mob-detail-bg{position:absolute;inset:0;background:rgba(13,13,11,.4)}
+  .mob-detail-inner{
+    position:absolute;bottom:0;left:0;right:0;
+    background:#fff;border-top:2px solid var(--ink);
+    min-height:40vh;max-height:80vh;display:flex;flex-direction:column;
+  }
+  .mob-detail-handle{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .mob-detail-title-wrap{flex:1;min-width:0}
+  .mob-detail-eye{font-family:var(--mono);font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+  .mob-detail-title{font-family:var(--bebas);font-size:18px;font-weight:400;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mob-detail-comp{font-family:var(--mono);font-size:10px;color:var(--c-실내악)}
+  .mob-detail-close{font-family:var(--mono);font-size:18px;color:var(--ink2);background:none;border:none;cursor:pointer;padding:0 0 0 12px;flex-shrink:0}
+  .mob-detail-body{flex:1;overflow-y:auto;padding:14px 16px}
+}
+@media(min-width:861px){
+  .mob-bar{display:none}
+  .mob-detail-sheet{display:none!important}
+}
+/* 헤더 제목 크기 제한 — 데스크탑도 너무 커지지 않게 */
+.hd-logo{max-width:280px}
+
+</style>
+</head>
+<body>
+
+<div id="setup">
+  <div class="su">
+    <div class="su-logo">CGE</div>
+    <div class="su-sub">Contemporary Gugak Explorer — 초기 설정</div>
+    <label class="su-label">Personal Access Token</label>
+    <input class="su-input" type="password" id="s-tok" placeholder="pat...">
+    <label class="su-label">Base ID</label>
+    <input class="su-input" type="text" id="s-base" placeholder="app...">
+    <label class="su-label">Works Table ID</label>
+    <input class="su-input" type="text" id="s-wt" placeholder="tbl...">
+    <label class="su-label">Videos Table ID</label>
+    <input class="su-input" type="text" id="s-vt" placeholder="tbl...">
+    <label class="su-label">Composers Table ID</label>
+    <input class="su-input" type="text" id="s-ct" placeholder="tbl...">
+    <label class="su-label">Timeline Table ID</label>
+    <input class="su-input" type="text" id="s-tt" placeholder="tbl...">
+    <label class="su-label">로고 이미지 URL <span style="color:var(--ink3);font-weight:400">(선택 — GIF, PNG 등)</span></label>
+    <input class="su-input" type="text" id="s-logo" placeholder="https://... (비우면 텍스트 로고)">
+    <label class="su-label">모바일 로고 URL <span style="color:var(--ink3);font-weight:400">(선택 — 정사각형 버전 권장)</span></label>
+    <input class="su-input" type="text" id="s-logo-mob" placeholder="https://... (비우면 데스크탑 로고와 동일)">
+    <label class="su-label">제보 구글폼 URL <span style="color:var(--ink3);font-weight:400">(선택)</span></label>
+    <input class="su-input" type="text" id="s-form" placeholder="https://forms.gle/...">
+    <button class="su-btn" onclick="saveSetup()">CONNECT →</button>
+    <div class="su-err" id="su-err"></div>
+    <div class="su-note">
+      Token: <a href="https://airtable.com/create/tokens" target="_blank">airtable.com/create/tokens</a> (scope: data.records:read)<br>
+      Base ID / Table ID: Airtable 주소창에서 app... / tbl... 부분만
+    </div>
+  </div>
+</div>
+
+<div id="loading"><div class="ld">CGE</div></div>
+
+<div id="app">
+  <header class="hd" id="hd">
+    <!-- 모바일: 로고 + 액션 한 줄 -->
+    <div class="hd-mobile-bar">
+      <div class="hd-logo hd-logo-mobile" onclick="resetView()" id="hd-logo-mobile">CGE</div>
+      <div class="hd-mobile-actions">
+        <a class="hd-report" id="hd-report-mobile" href="#" target="_blank">+ 제보하기</a>
+        <button class="hd-settings" onclick="showSetup()">⚙</button>
+      </div>
+    </div>
+    <!-- 데스크탑 topbar -->
+    <div class="hd-topbar">
+      <a class="hd-report" id="hd-report" href="#" target="_blank">+ 제보하기</a>
+      <button class="hd-settings hd-settings-desk" onclick="showSetup()">⚙</button>
+    </div>
+    <div class="hd-inner">
+      <div class="hd-left">
+        <div class="hd-logo" onclick="resetView()" id="hd-logo-wrap">CGE</div>
+        <div class="hd-tagline">Contemporary Gugak Explorer</div>
+      </div>
+      <div class="hd-right">
+        <div class="hd-counts">
+          <div><div class="hd-cn" id="c-w">—</div><div class="hd-cl">Works</div></div>
+          <div><div class="hd-cn" id="c-v">—</div><div class="hd-cl">Videos</div></div>
+          <div><div class="hd-cn" id="c-c">—</div><div class="hd-cl">Composers</div></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="body" id="body">
+
+    <aside class="sb">
+      <div class="sb-top">
+        <div class="sb-fg">
+          <div class="sb-fl">악기 <span style="letter-spacing:0;text-transform:none;font-size:9px;color:var(--ink3);font-weight:400">(복수 선택)</span></div>
+          <div class="sb-fbtns" id="inst-top-btns"></div>
+        </div>
+        <div class="sb-fg">
+          <div class="sb-fl">편성</div>
+          <div class="sb-fbtns" id="type-btns">
+            <button class="sb-fb on" data-v="all">전체</button>
+            <button class="sb-fb" data-v="협주곡">협주곡</button>
+            <button class="sb-fb" data-v="실내악">실내악</button>
+            <button class="sb-fb" data-v="독주">독주</button>
+            <button class="sb-fb" data-v="관현악">관현악</button>
+          </div>
+        </div>
+        <div class="sb-sq">
+          <span style="color:var(--ink3);font-size:13px">⌕</span>
+          <input type="text" id="q" placeholder="작품명, 작곡가 검색..." oninput="doFilter()">
+        </div>
+      </div>
+      <div class="sb-scroll">
+        <div class="sb-sec">
+          <div class="sb-sh">작곡가</div>
+          <div id="comp-sb"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="wkcol" id="wkcol">
+      <div class="mob-bar" id="mob-bar">
+        <button class="mob-chip on" data-v="all" onclick="mobType(this,'all')">전체</button>
+        <button class="mob-chip" data-v="협주곡" onclick="mobType(this,'협주곡')">협주곡</button>
+        <button class="mob-chip" data-v="실내악" onclick="mobType(this,'실내악')">실내악</button>
+        <button class="mob-chip" data-v="독주" onclick="mobType(this,'독주')">독주</button>
+        <select class="mob-sort" onchange="doSort(this.value)">
+          <option value="title">제목순</option>
+          <option value="composer">작곡가순</option>
+          <option value="year-desc">최신순</option>
+          <option value="year-asc">연대순</option>
+        </select>
+      </div>
+      <div class="comp-card" id="comp-card">
+        <div class="comp-card-inner">
+          <div class="comp-card-top">
+            <div class="comp-card-name" id="comp-card-name"></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="comp-profile-btn" id="comp-profile-btn" onclick="openComposerProfile()">프로필 →</button>
+              <button class="comp-card-close" onclick="clearComposer()">전체 ×</button>
+            </div>
+          </div>
+          <div class="comp-card-stats" id="comp-card-stats"></div>
+          <div class="comp-card-links" id="comp-card-links"></div>
+        </div>
+      </div>
+      <div class="wkbar">
+        <span class="wkn" id="wkn"></span>
+        <select class="wksort" onchange="doSort(this.value)">
+          <option value="title">제목순</option>
+          <option value="composer">작곡가순</option>
+          <option value="year-desc">최신순</option>
+          <option value="year-asc">연대순</option>
+        </select>
+      </div>
+      <div id="wlist"></div>
+    </div>
+
+    <div class="dp" id="dp">
+      <!-- 작품 영상 뷰 -->
+      <div id="dp-work" style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+        <div class="dph" id="dph">
+          <div class="dp-accent" id="dp-accent"></div>
+          <div class="dp-hinner">
+            <div class="dp-eye" id="dp-eye"></div>
+            <div class="dp-title" id="dp-title"></div>
+            <div class="dp-comp" id="dp-comp"></div>
+          </div>
+        </div>
+        <div class="dpb" id="dpb">
+          <div class="dp-empty">
+            <div class="dp-empty-logo">CGE</div>
+            <div class="dp-empty-hint">← 작품을 선택하세요</div>
+          </div>
+        </div>
+      </div>
+      <!-- 작곡가 프로필 뷰 -->
+      <div id="dp-composer" style="display:none;flex-direction:column;height:100%;overflow:hidden">
+        <div class="cp-head">
+          <button class="cp-back-btn" onclick="closeComposerProfile()">← 작품 목록으로</button>
+          <div class="cp-photo-wrap">
+            <div class="cp-photo" id="cp-photo"></div>
+          </div>
+          <div class="cp-name" id="cp-name"></div>
+          <div class="cp-birth" id="cp-birth"></div>
+          <div class="cp-stats-row" id="cp-stats-row"></div>
+          <div class="cp-links" id="cp-links"></div>
+        </div>
+        <div class="cp-body" id="cp-body"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<button class="btt" id="btt" onclick="backToTop()" title="맨 위로">↑</button>
+
+<!-- 모바일 상세 시트 -->
+<div class="mob-detail-sheet" id="mob-sheet">
+  <div class="mob-detail-bg" onclick="closeMobSheet()"></div>
+  <div class="mob-detail-inner">
+    <div class="mob-detail-handle">
+      <div class="mob-detail-title-wrap">
+        <div class="mob-detail-eye" id="mob-eye"></div>
+        <div class="mob-detail-title" id="mob-title"></div>
+        <div class="mob-detail-comp" id="mob-comp"></div>
+      </div>
+      <button class="mob-detail-close" onclick="closeMobSheet()">✕</button>
+    </div>
+    <div class="mob-detail-body" id="mob-body"></div>
+  </div>
+</div>
+
+<script>
+const LS={
+  get:k=>localStorage.getItem('cge3_'+k)||'',
+  set:(k,v)=>localStorage.setItem('cge3_'+k,v),
+  clear:()=>['tok','base','wt','vt','ct','tt','form'].forEach(k=>localStorage.removeItem('cge3_'+k))
+};
+const INSTS=['가야금','거문고','대금','피리','해금','아쟁','소금','생황','타악','기타'];
+const COLORS={'협주곡':'#8C1D23','실내악':'#2D5F4F','독주':'#4A7BA7','관현악':'#B5622A','성악':'#5C3A2E'};
+let WORKS=[],VIDEOS=[],COMPOSERS=[],TIMELINE=[],filtered=[],selId=null;
+let aType='all',aEra='all',aInsts=[],aComp='all';
+const g=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function saveSetup(){
+  const t=g('s-tok').value.trim(),b=g('s-base').value.trim();
+  const w=g('s-wt').value.trim(),v=g('s-vt').value.trim();
+  const ct=g('s-ct').value.trim(),tt=g('s-tt').value.trim();
+  if(!t||!b||!w||!v){g('su-err').textContent='Token, Base ID, Works, Videos는 필수예요';return}
+  if(!t.startsWith('pat')){g('su-err').textContent='Token은 pat으로 시작해야 해요';return}
+  if(!b.startsWith('app')){g('su-err').textContent='Base ID는 app으로 시작해야 해요';return}
+  if(!w.startsWith('tbl')||!v.startsWith('tbl')){g('su-err').textContent='Table ID는 tbl로 시작해야 해요';return}
+  LS.set('tok',t);LS.set('base',b);LS.set('wt',w);LS.set('vt',v);
+  if(ct.startsWith('tbl'))LS.set('ct',ct);
+  if(tt.startsWith('tbl'))LS.set('tt',tt);
+  const form=g('s-form').value.trim();
+  if(form)LS.set('form',form);
+  const logo=g('s-logo').value.trim();
+  LS.set('logo',logo);
+  const logoMob=g('s-logo-mob').value.trim();
+  LS.set('logo-mob',logoMob);
+  g('su-err').textContent='';g('setup').classList.remove('on');boot();
+}
+function showSetup(){
+  g('s-tok').value=LS.get('tok');
+  g('s-base').value=LS.get('base');
+  g('s-wt').value=LS.get('wt');
+  g('s-vt').value=LS.get('vt');
+  g('s-ct').value=LS.get('ct');
+  g('s-tt').value=LS.get('tt');
+  g('s-logo').value=LS.get('logo')||'';
+  g('s-logo-mob').value=LS.get('logo-mob')||'';
+  g('s-form').value=LS.get('form')||'';
+  g('setup').classList.add('on');
+}
+
+async function fetchAll(tbl){
+  const tok=LS.get('tok'),base=LS.get('base');let recs=[],offset=null;
+  do{const p=new URLSearchParams({pageSize:100});if(offset)p.set('offset',offset);
+    const r=await fetch(`https://api.airtable.com/v0/${base}/${tbl}?${p}`,{headers:{Authorization:`Bearer ${tok}`}});
+    if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'로드 실패')}
+    const d=await r.json();recs=recs.concat(d.records);offset=d.offset;
+  }while(offset);return recs;
+}
+
+async function boot(){
+  g('loading').classList.add('on');
+  try{
+    const fetches=[fetchAll(LS.get('wt')),fetchAll(LS.get('vt'))];
+    const ct=LS.get('ct'),tt=LS.get('tt');
+    if(ct)fetches.push(fetchAll(ct));
+    if(tt)fetches.push(fetchAll(tt));
+    const results=await Promise.all(fetches);
+    const[wR,vR]=results;
+    const cR=ct?results[2]:[];
+    const tR=tt?(ct?results[3]:results[2]):[];
+
+    WORKS=wR.map(r=>({id:r.id,title:r.fields['곡명']||'',composer:r.fields['작곡가']||'',
+      instruments: Array.isArray(r.fields['악기'])?r.fields['악기']:(r.fields['악기']?[r.fields['악기']]:[]),
+      instrument:Array.isArray(r.fields['악기'])?r.fields['악기'].join(', '):(r.fields['악기']||''),
+      type:r.fields['편성유형']||'',sub:r.fields['세부편성']||'',year:r.fields['작곡연도']||'',commission:r.fields['위촉처']||'',premiere:r.fields['초연정보']||'',duration:r.fields['연주시간']||'',videos:[]})).filter(w=>w.title);
+    VIDEOS=vR.map(r=>({id:r.id,title:r.fields['영상제목']||'',channel:r.fields['연주단체']||'',performer:r.fields['협연자']||'',conductor:r.fields['지휘자']||'',url:r.fields['유튜브URL']||'',workIds:r.fields['관련곡']||[]}));
+    COMPOSERS=cR.map(r=>({
+      id:r.id,
+      name:r.fields['이름']||'',
+      birth:r.fields['생년']||'',
+      bio:r.fields['약력']||'',
+      website:r.fields['홈페이지']||'',
+      photo:r.fields['사진URL']||'',
+    })).filter(c=>c.name);
+    TIMELINE=tR.map(r=>({
+      id:r.id,
+      composer:r.fields['작곡가']?.[0]||'',  // linked record id
+      composerName:'',  // fill below
+      year:r.fields['연도']||'',
+      type:r.fields['유형']||'',
+      content:r.fields['내용']||'',
+      link:r.fields['링크']||'',
+    }));
+
+    // video → work 인덱스
+    const vm={};VIDEOS.forEach(v=>(v.workIds||[]).forEach(wid=>{if(!vm[wid])vm[wid]=[];vm[wid].push(v)}));
+    WORKS.forEach(w=>{w.videos=vm[w.id]||[]});
+
+    // composer id → name 맵 (timeline용)
+    const compMap={};COMPOSERS.forEach(c=>{compMap[c.id]=c.name});
+    TIMELINE.forEach(t=>{t.composerName=compMap[t.composer]||''});
+
+    g('loading').classList.remove('on');g('app').classList.add('on');
+    // 제보 버튼
+    const formUrl=LS.get('form')||'https://forms.gle/ocuJ8SDxWdwzQB2C9';
+    [g('hd-report'),g('hd-report-mobile')].forEach(btn=>{if(btn)btn.href=formUrl;});
+    // 데스크탑 로고
+    const logoUrl=LS.get('logo');
+    const logoWrap=g('hd-logo-wrap');
+    if(logoUrl){
+      logoWrap.innerHTML=`<img src="${logoUrl}" alt="CGE" style="height:1.4em;width:auto;display:block;margin-bottom:-0.1em">`;
+    } else {logoWrap.textContent='CGE';}
+    // 모바일 로고 (별도 없으면 데스크탑 로고 사용)
+    const logoMobUrl=LS.get('logo-mob')||logoUrl;
+    const logoMobWrap=g('hd-logo-mobile');
+    if(logoMobUrl){
+      logoMobWrap.innerHTML=`<img src="${logoMobUrl}" alt="CGE" style="height:32px;width:auto;display:block">`;
+    } else {logoMobWrap.textContent='CGE';}
+    initUI();
+  }catch(e){g('loading').classList.remove('on');showSetup();g('su-err').textContent='연결 실패: '+e.message}
+}
+
+function initUI(){
+  const composers=[...new Set(WORKS.map(w=>w.composer).filter(Boolean))].sort();
+  g('c-w').textContent=WORKS.length;g('c-v').textContent=VIDEOS.length;g('c-c').textContent=composers.length;
+  const instItems=INSTS.filter(i=>WORKS.some(w=>w.instruments.includes(i)));
+  g('inst-top-btns').innerHTML=instItems.map(i=>
+    `<button class="sb-fb inst-chip" data-v="${esc(i)}" onclick="toggleInst('${esc(i)}')">${esc(i)}</button>`
+  ).join('');
+  const cc={};WORKS.forEach(w=>{if(w.composer)cc[w.composer]=(cc[w.composer]||0)+1});
+  const top=Object.entries(cc).sort((a,b)=>a[0].localeCompare(b[0],'ko'));
+  const unk=WORKS.filter(w=>!w.composer).length;
+  g('comp-sb').innerHTML=
+    sbi('all','전체',WORKS.length,'comp',true)+
+    top.map(([c,n])=>sbi(c,c,n,'comp')).join('')+
+    (unk?`<div class="sb-item" data-type="comp" data-v="__unk__" onclick="setSb(this,'comp','__unk__')"><span class="sbn sb-unk">미확인</span></div>`:'');
+  filtered=[...WORKS];doSort('title');initScroll();
+  setTimeout(()=>{ if(filtered.length)openDetail(filtered[0].id); },100);
+}
+
+function sbi(v,lbl,cnt,type,active=false){
+  const showCount=type==='inst';
+  return `<div class="sb-item${active?' on':''}" data-type="${type}" data-v="${esc(v)}" onclick="setSb(this,'${type}','${esc(v)}')">`+
+    `<span class="sbn">${esc(lbl)}</span>${showCount?`<span class="sbc">${cnt}</span>`:''}</div>`;
+}
+function toggleInst(val){
+  const idx=aInsts.indexOf(val);
+  if(idx>-1)aInsts.splice(idx,1);
+  else aInsts.push(val);
+  document.querySelectorAll('.inst-chip').forEach(el=>{
+    el.classList.toggle('on',aInsts.includes(el.dataset.v));
+  });
+  doFilter();
+}
+function setSb(el,type,val){
+  document.querySelectorAll(`.sb-item[data-type="${type}"]`).forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+  aComp=val;
+  if(val!=='all'&&val!=='__unk__'){
+    showComposerCard(val);
+  } else {
+    g('comp-card').classList.remove('show');
+  }
+  doFilter();
+}
+
+function showComposerCard(name){
+  const works=WORKS.filter(w=>w.composer===name);
+  const vids=works.reduce((s,w)=>s+w.videos.length,0);
+  const profile=COMPOSERS.find(c=>c.name===name);
+  g('comp-card-name').textContent=name;
+  g('comp-card-stats').innerHTML=`<b>${works.length}</b> 작품 &nbsp;·&nbsp; <b>${vids}</b> 영상`;
+  g('comp-card-links').innerHTML='';
+  const btn=g('comp-profile-btn');
+  if(btn){
+    if(profile){btn.classList.remove('no-profile');btn.textContent='프로필 →';}
+    else{btn.classList.add('no-profile');btn.textContent='프로필 준비중';}
+  }
+  g('comp-card').classList.add('show');
+}
+
+let currentComposerName='';
+function openComposerProfile(){
+  const name=g('comp-card-name').textContent;
+  if(!name)return;
+  const profile=COMPOSERS.find(c=>c.name===name);
+  if(!profile)return;
+  currentComposerName=name;
+  const works=WORKS.filter(w=>w.composer===name).sort((a,b)=>(parseInt(a.year)||0)-(parseInt(b.year)||0));
+  const vids=works.reduce((s,w)=>s+w.videos.length,0);
+  const timeline=TIMELINE.filter(t=>t.composerName===name).sort((a,b)=>(parseInt(a.year)||0)-(parseInt(b.year)||0));
+  const photoEl=g('cp-photo');
+  photoEl.innerHTML=profile.photo
+    ?`<img src="${esc(profile.photo)}" alt="${esc(name)}">`
+    :`<span class="cp-photo-initial">${name.charAt(0)}</span>`;
+  g('cp-name').textContent=name;
+  g('cp-birth').textContent=profile.birth?`b. ${profile.birth}`:'';
+  g('cp-stats-row').innerHTML=`<span class="cp-stat"><b>${works.length}</b> 작품</span><span class="cp-stat"><b>${vids}</b> 영상</span>`;
+  g('cp-links').innerHTML=profile.website?`<a class="cp-link" href="${esc(profile.website)}" target="_blank">홈페이지 ↗</a>`:'';
+  let body='';
+  if(profile.bio)body+=`<div class="cp-sec-title">소개</div><div class="cp-bio">${esc(profile.bio)}</div>`;
+  if(timeline.length){
+    body+=`<div class="cp-sec-title">궤적</div>`;
+    body+=timeline.map(t=>`<div class="tl-item"><div class="tl-year">${t.year||'—'}</div><div>${t.type?`<span class="tl-type tl-type-${esc(t.type)}">${esc(t.type)}</span>`:''}<div class="tl-text">${esc(t.content)}</div>${t.link?`<a class="tl-link" href="${esc(t.link)}" target="_blank">원문 →</a>`:''}</div></div>`).join('');
+  }
+  body+=`<div class="cp-sec-title" style="margin-top:16px">작품 (${works.length})</div>`;
+  body+=works.map(w=>`<div class="cp-work-row" onclick="closeComposerProfile();openDetail('${w.id}')"><div class="cp-wy">${w.year||'—'}</div><div><div class="cp-wt">${esc(w.title)}</div><div class="cp-wsub">${esc(w.sub||w.type)}</div></div><div class="cp-wvc">${w.videos.length?`<span class="cp-vd"></span>${w.videos.length}`:'—'}</div></div>`).join('');
+  g('cp-body').innerHTML=body;g('cp-body').scrollTop=0;
+  g('dp-work').style.display='none';
+  g('dp-composer').style.display='flex';
+}
+
+function closeComposerProfile(){
+  g('dp-composer').style.display='none';
+  g('dp-work').style.display='flex';
+}
+
+function clearComposer(){
+  aComp='all';
+  g('comp-card').classList.remove('show');
+  document.querySelectorAll('.sb-item[data-type="comp"]').forEach(e=>e.classList.remove('on'));
+  const allBtn=document.querySelector('.sb-item[data-type="comp"][data-v="all"]');
+  if(allBtn)allBtn.classList.add('on');
+  doFilter();
+}
+
+function mobType(el,val){
+  document.querySelectorAll('.mob-chip').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');aType=val;
+  document.querySelectorAll('#type-btns .sb-fb').forEach(b=>b.classList.toggle('on',b.dataset.v===val));
+  doFilter();
+}
+['type-btns'].forEach(gid=>{
+  g(gid).addEventListener('click',e=>{
+    const btn=e.target.closest('.sb-fb');if(!btn)return;
+    g(gid).querySelectorAll('.sb-fb').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');aType=btn.dataset.v;doFilter();
+  });
+});
+
+function era(y){if(!y)return'';const n=parseInt(y);if(n<=1989)return'~1989';if(n<=1999)return'1990s';if(n<=2009)return'2000s';return'2010s+'}
+function doFilter(){
+  const q=g('q').value.toLowerCase();
+  filtered=WORKS.filter(w=>(aType==='all'||w.type===aType)&&(aEra==='all'||era(w.year)===aEra)
+    &&(aInsts.length===0||aInsts.every(i=>w.instruments.includes(i)))
+    &&(aComp==='all'||(aComp==='__unk__'?!w.composer:w.composer===aComp))
+    &&(!q||w.title.toLowerCase().includes(q)||w.composer.toLowerCase().includes(q)||(w.sub||'').toLowerCase().includes(q)));
+  renderList();
+  if(filtered.length&&(!selId||!filtered.find(w=>w.id===selId)))openDetail(filtered[0].id);
+}
+function doSort(v){
+  if(v==='title')filtered.sort((a,b)=>a.title.localeCompare(b.title,'ko'));
+  if(v==='composer')filtered.sort((a,b)=>(a.composer||'ㅎ').localeCompare(b.composer||'ㅎ','ko'));
+  if(v==='year-desc')filtered.sort((a,b)=>(parseInt(b.year)||0)-(parseInt(a.year)||0));
+  if(v==='year-asc')filtered.sort((a,b)=>(parseInt(a.year)||0)-(parseInt(b.year)||0));
+  renderList();
+}
+
+function renderList(){
+  g('wkn').textContent=`${filtered.length} works`;
+  if(!filtered.length){g('wlist').innerHTML='<div class="empty">검색 결과가 없어요</div>';return}
+  g('wlist').innerHTML=filtered.map(w=>`
+    <div class="wr${selId===w.id?' sel':''}" id="wr-${w.id}" data-t="${esc(w.type)}" onclick="openDetail('${w.id}')">
+      <div class="wm">
+        <div class="wy">${w.year||'—'}</div>
+        <div class="wi">
+          <div class="wt">${esc(w.title)}</div>
+          ${aComp==='all'||aComp==='__unk__'?`<div class="wcomp">${esc(w.composer)||'미확인'}</div>`:''}
+          <div class="wsub">${esc(w.sub||w.type)}</div>
+        </div>
+        <div class="wvc">${w.videos.length?`<span class="vd"></span>${w.videos.length}`:'—'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function isMobile(){return window.innerWidth<=860}
+
+function openDetail(id){
+  const w=WORKS.find(x=>x.id===id);if(!w)return;
+  selId=id;
+  document.querySelectorAll('.wr').forEach(r=>r.classList.remove('sel'));
+  const row=g('wr-'+id);if(row){row.classList.add('sel');row.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  const color=COLORS[w.type]||'#7A7A72';
+  const vHTML=w.videos.length
+    ?w.videos.map(v=>{
+      const ytId=(v.url.match(/[?&]v=([\w-]+)/)||v.url.match(/youtu\.be\/([\w-]+)/))?.[1]||'';
+      const sub=[v.performer,v.conductor?'지휘 '+v.conductor:'',v.channel].filter(Boolean).join(' · ');
+      return`<div class="vc" onclick="playVideo(this,'${ytId}','${esc(v.url)}')">
+        <div class="vth" id="vth-${ytId}">
+          ${ytId?`<img src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" alt="" loading="lazy">`:''}
+          <div class="vpl"></div>
+        </div>
+        <div><div class="vt">${esc(v.title)}</div><div class="vs">${esc(sub)}</div></div>
+      </div>`;
+    }).join('')
+    :`<div class="dp-no">등록된 영상이 없어요</div>`;
+  const vSection=`<div class="dp-sh">연주 영상${w.videos.length?` (${w.videos.length})`:''}</div>${vHTML}`;
+
+  if(isMobile()){
+    // 모바일: bottom sheet
+    g('mob-eye').textContent=[w.sub||w.type,w.year].filter(Boolean).join(' · ');
+    g('mob-title').textContent=w.title;
+    g('mob-comp').textContent=w.composer||'작곡가 미확인';
+    g('mob-body').innerHTML=vSection;
+    g('mob-sheet').classList.add('open');
+    document.body.style.overflow='hidden';
+  } else {
+    // 데스크탑: 오른쪽 패널
+    g('dp-accent').style.background=color;
+    g('dp-eye').textContent=[w.sub||w.type,w.year].filter(Boolean).join(' · ');
+    g('dp-title').textContent=w.title;
+    const compEl=g('dp-comp');
+    if(w.composer){
+      compEl.textContent=w.composer;
+      compEl.onclick=()=>filterByComposer(w.composer);
+      compEl.title=`${w.composer}의 작품만 보기`;
+    } else {
+      compEl.textContent='작곡가 미확인';
+      compEl.onclick=null;compEl.style.cursor='default';
+    }
+    g('dpb').innerHTML=vSection;
+    g('dpb').scrollTop=0;
+  }
+}
+
+function playVideo(el, ytId, fallbackUrl){
+  if(!ytId){window.open(fallbackUrl,'_blank');return;}
+  const existing=el.querySelector('iframe');
+  if(existing){el.querySelector('.vth').innerHTML=`<img src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" alt=""><div class="vpl"></div>`;el.style.flexDirection='';el.style.alignItems='';return;}
+  const thumb=el.querySelector('.vth');
+  thumb.innerHTML=`<iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%"></iframe>`;
+  thumb.style.position='relative';thumb.style.paddingBottom='56.25%';thumb.style.height='0';thumb.style.width='100%';
+  el.style.flexDirection='column';el.style.alignItems='stretch';
+}
+
+function closeMobSheet(){
+  g('mob-sheet').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function closeDetail(){
+  selId=null;
+  document.querySelectorAll('.wr').forEach(r=>r.classList.remove('sel'));
+  g('dpb').innerHTML='<div class="dp-empty"><div class="dp-empty-logo">CGE</div><div class="dp-empty-hint">← 작품을 선택하세요</div></div>';
+  g('dp-accent').style.background='transparent';
+  g('dp-eye').textContent='';g('dp-title').textContent='';g('dp-comp').textContent='';
+}
+
+function autoSelectFirst(){
+  if(filtered.length>0)openDetail(filtered[0].id);
+}
+
+function filterByComposer(composer){
+  aComp=composer;
+  document.querySelectorAll('.sb-item[data-type="comp"]').forEach(e=>e.classList.remove('on'));
+  const btn=document.querySelector(`.sb-item[data-type="comp"][data-v="${esc(composer)}"]`);
+  if(btn)btn.classList.add('on');
+  showComposerCard(composer);
+  doFilter();
+  g('wkcol').scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetView(){
+  aType='all';aEra='all';aInsts=[];aComp='all';g('q').value='';
+  document.querySelectorAll('.sb-fb').forEach(b=>b.classList.toggle('on',b.dataset.v==='all'));
+  document.querySelectorAll('.sb-item[data-type="comp"]').forEach(b=>b.classList.toggle('on',b.dataset.v==='all'));
+  document.querySelectorAll('.inst-chip').forEach(b=>b.classList.remove('on'));
+  filtered=[...WORKS];doSort('title');
+  g('wkcol').scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{ if(filtered.length)openDetail(filtered[0].id); },50);
+}
+
+function initScroll(){
+  const hd=g('hd'),btt=g('btt'),wk=g('wkcol');
+  wk.addEventListener('scroll',()=>{
+    const s=wk.scrollTop;
+    hd.classList.toggle('small',s>80);
+    btt.classList.toggle('on',s>300);
+  });
+}
+function backToTop(){g('wkcol').scrollTo({top:0,behavior:'smooth'})}
+
+window.addEventListener('load',()=>{
+  const t=LS.get('tok'),b=LS.get('base'),w=LS.get('wt'),v=LS.get('vt');
+  if(t&&b&&w&&v)boot();else g('setup').classList.add('on');
+});
+</script>
+</body>
+</html>
